@@ -1,0 +1,174 @@
+.grid {
+  position: absolute;
+  left: 0;
+  top: auto;
+  right: 0;
+  bottom: 0;
+  overflow: hidden;
+  width: 100%;
+  height: 70vh;
+  -webkit-perspective: 56.25vh;
+  perspective: 56.25vh;
+  -webkit-transform: perspective(normalpxpxpxpxpxpxpxpxpxpxpxpxpxpx);
+  transform: perspective(normalpxpxpxpxpxpxpxpxpxpxpxpxpxpx);
+}
+
+.grid-mask {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  background-color: transparent;
+}
+.grid-lines {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 0;
+  width: 100%;
+  height: 200%;
+}
+
+.grid-lines {
+  background-image: linear-gradient(
+      to right,
+      rgba(111, 207, 151, 0.4) 1px,
+      transparent 0
+    ),
+    linear-gradient(to bottom, rgba(111, 207, 151, 0.4) 1px, transparent 0);
+  background-size: 4vh 3vh;
+  background-repeat: repeat;
+  transform-origin: 100% 0 0;
+  animation: play 30s linear infinite;
+  z-index: 0;
+}
+.crt {
+  position: absolute;
+  left: 0;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 999;
+  color: #24f29c;
+}
+.crt {
+  pointer-events: none;
+}
+.crt::after {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: rgba(18, 16, 16, 0.3);
+  opacity: 0;
+  z-index: 2;
+  pointer-events: none;
+  animation: flicker 0.15s infinite;
+}
+.crt::before {
+  content: " ";
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  bottom: 0;
+  right: 0;
+  background: linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.25) 50%),
+    linear-gradient(
+      90deg,
+      rgba(255, 0, 0, 0.06),
+      rgba(0, 255, 0, 0.02),
+      rgba(0, 0, 255, 0.06)
+    );
+  z-index: 2;
+  background-size: 100% 4px, 6px 100%;
+}
+
+@keyframes flicker {
+  0% {
+    opacity: 0.27861;
+  }
+  5% {
+    opacity: 0.34769;
+  }
+  10% {
+    opacity: 0.23604;
+  }
+  15% {
+    opacity: 0.90626;
+  }
+  20% {
+    opacity: 0.18128;
+  }
+  25% {
+    opacity: 0.83891;
+  }
+  30% {
+    opacity: 0.65583;
+  }
+  35% {
+    opacity: 0.67807;
+  }
+  40% {
+    opacity: 0.26559;
+  }
+  45% {
+    opacity: 0.84693;
+  }
+  50% {
+    opacity: 0.96019;
+  }
+  55% {
+    opacity: 0.08594;
+  }
+  60% {
+    opacity: 0.20313;
+  }
+  65% {
+    opacity: 0.71988;
+  }
+  70% {
+    opacity: 0.53455;
+  }
+  75% {
+    opacity: 0.37288;
+  }
+  80% {
+    opacity: 0.71428;
+  }
+  85% {
+    opacity: 0.70419;
+  }
+  90% {
+    opacity: 0.7003;
+  }
+  95% {
+    opacity: 0.36108;
+  }
+  100% {
+    opacity: 0.24387;
+  }
+}
+
+@keyframes play {
+  0% {
+    transform: rotateX(45deg) translateY(-50%);
+  }
+  100% {
+    transform: rotateX(45deg) translateY(0);
+  }
+}
+.tokyo-main {
+  width: 100%;
+  height: 800px;
+}
+.tokyo-content {
+  position: relative;
+  z-index: 999;
+}

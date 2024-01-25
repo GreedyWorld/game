@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="en-us">
+  <head>
+    <meta charset="utf-8">
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Greedy World</title>
+    <link rel="shortcut icon" href="TemplateData/favicon.ico">
+    <link rel="stylesheet" href="TemplateData/style.css">
+    <script src="TemplateData/socket.io.js"></script>
+    <script src="./web3.min.js"></script>
+    <script src="./index.js"></script>
+    <script src="./abi/USDT.js"></script>
+    <script src="./abi/DAI.js"></script>
+    <script src="./abi/USDC.js"></script>
+    <script src="https://telegram.org/js/telegram-widget.js" type="text/javascript"></script>
+    <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6339260590882455" crossorigin="anonymous"></script>
+    <meta name="google-adsense-account" content="ca-pub-6339260590882455">
+  </head>
+  <body onload="Reset()" onresize="Reset()">
+    <div id="unity-container" class="unity-desktop">
+      <iframe id="webpage-frame" width=960 height=540 src="./index_Back.html" scrolling="no"></iframe>
+      <canvas id="unity-canvas" width=960 height=540></canvas>
+      <script async
+        data-admob-rewarded-slot="ca-pub-6339260590882455"
+        src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6339260590882455"
+        crossorigin="anonymous">
+      </script>
+      <script>
+        window.adsbygoogle = window.adsbygoogle || [];
+        const adBreak = adConfig = function(o) {adsbygoogle.push(o);}
+      </script>
+      <div id="unity-loading-bar">
+        <div id="unity-logo"></div>
+        <div id="unity-progress-bar-empty">
+          <div id="unity-progress-bar-full"></div>
+        </div>
+      </div>
+      <div id="unity-warning"> </div>
+      <div id="unity-footer">
+        <div id="unity-webgl-logo"></div>
+        <div id="unity-fullscreen-button"></div>
+        <!-- <div id="unity-build-title">TCS</div> -->
+        <div id="unity-build-title">Fullscreen</div>
+      </div>
+    </div>
+    <input id="UploadBtn" type="file">
+    <div id="TelegramLoginBtn" onclick="LoginByTelegram()">
+    </div>
+
+    <script>
+      var container = document.querySelector("#unity-container");
+      var canvas = document.querySelector("#unity-canvas");
+      var loadingBar = document.querySelector("#unity-loading-bar");
+      var progressBarFull = document.querySelector("#unity-progress-bar-full");
+      var fullscreenButton = document.querySelector("#unity-fullscreen-button");
+      var warningBanner = document.querySelector("#unity-warning");
+      var blockChain = new BlockChain();
+      // Shows a temporary message banner/ribbon for a few seconds, or
+      // a permanent error message on top of the canvas if type=='error'.
+      // If type=='warning', a yellow highlight color is used.
+      // Modify or remove this function to customize the visually presented
+      // way that non-critical warnings and error messages are presented to the
+      // user.
+      function unityShowBanner(msg, type) {
+        function updateBannerVisibility() {
+          warningBanner.style.display = warningBanner.children.length ? 'block' : 'none';
+        }
+        var div = document.createElement('div');
+        div.innerHTML = msg;
+        warningBanner.appendChild(div);
+        if (type == 'error') div.style = 'background: red; padding: 10px;';
+        else {
+          if (type == 'warning') div.style = 'background: yellow; padding: 10px;';
+          setTimeout(function() {
+            warningBanner.removeChild(div);
+            updateBannerVisibility();
+          }, 5000);
+        }
+        updateBannerVisibility();
+      }
+
+      var UObjName="";
+      var UObjFunc = "";
+      //広告を表示する
+      function ShowGoogleAD(objName,funcName)
+      {
+        console.log(objName+':'+funcName+'広告を表示する');
+        UObjName = objName;
+        UObjFunc = funcName;
+        adBreak({
+          type: 'reward',
+          name: 'new_life_reward_1',
+          beforeAd: pauseGame,
+          afterAd: restartGame,
+          beforeReward: showRewardPrompt,
+          adDismissed: adDismissed,
+          adViewed: adViewed,
+          adBreakDone: breakDone,
+        });
+      }
+
+      function SetObjAndFuncName(objName,funcName)
+      {
+        console.log(">>>>>>"+objName+':'+funcName);
+        UObjName = objName;
+        UObjFunc = funcName;
+        if(objName.trim() === "MainMenu" && funcName.trim() === "LoginResult")
+        {
+          //パラメータの存在を検出する
+          var url = window.location.href;
+          var paramsString = url.split('?')[1]; // URL のパラメーターを取得する
+          if (paramsString == null)
+          {
+            return;
+          }
+          var params = paramsString.split('&'); // 文字列を複数のパラメータに分割する
+          var paramsObj = {}; // 空のオブジェクトを作成する
+          console.log(">>>>>>>"+params.length)
+          if (params.length >= 6)
+          {
+            for (var i = 0; i < params.length; i++) 
+            {
+              var param = params[i];
+              var keyValue = param.split('=');
+              var key = decodeURIComponent(keyValue[0]);
+              var value = decodeURIComponent(keyValue[1]);
+              paramsObj[key] = value; // キーと値のペアをオブジェクトに追加する
+            }
+            onTelegramAuth(paramsObj);
+          }
+        }
+      }
+
+      function breakDone()
+      {
+        console.log("breakDone");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'breakDone');
+      }
+
+      function pauseGame()
+      {
+        console.log("pauseGame");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'pauseGame');
+      }
+
+      function showRewardPrompt()
+      {
+        console.log("showRewardPrompt");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'showRewardPrompt');
+      }
+      
+      function restartGame()
+      {
+        console.log("restartGame");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'restartGame');
+      }
+      
+      function adDismissed()
+      {
+        console.log("adDismissed");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'adDismissed');
+      }
+      
+      function adViewed()
+      {
+        console.log("adViewed");
+        window.unityInstance.SendMessage(UObjName, UObjFunc, 'adViewed');
+      }
+
+
+      function GetWebPlatForm(objName,funcName)
+      {
+        console.log(">>>>>>"+objName+':'+funcName);
+        UObjName = objName;
+        UObjFunc = funcName;
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent))
+        {
+          window.unityInstance.SendMessage(UObjName, UObjFunc, 1);
+        }
+        else
+        {
+          window.unityInstance.SendMessage(UObjName, UObjFunc, 0);
+        }
+      }
+
+      function LoginByTelegram()
+      {
+        var btn = document.querySelector("#TelegramLoginBtn");
+        window.Telegram.Login.auth({ bot_id: '6776627278', request_access: 'write', embed: 1 }, onTelegramAuth);
+      }
+
+      function onTelegramAuth(user)
+      {
+        if (!user) 
+        {
+          console.log(">>>>>>>>>LoginTelegram>>>ログイン失敗!");
+          return;
+        }
+        console.log(">>>>>>>>>LoginTelegram>>>"+JSON.stringify(user));
+        window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(user));
+      }
+
+      async function GetBlockChainAccounts()
+      {
+        let account = await blockChain.getAccounts();
+        window.unityInstance.SendMessage(UObjName, UObjFunc, account);
+      }
+
+      async function OpenMaticTransaction(fa, ta, vl)
+      {
+        let account = await blockChain.getAccounts();
+        blockChain.sendTransaction(
+          {
+            from:fa,
+            to:ta,
+            value:blockChain.toWei(String(vl)),
+          },(err, res)=>{
+            if(err)
+            {
+                window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(err));
+            }
+            if(res)
+            {
+              console.log(res);
+              window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(res));
+            }
+          }
+        );
+      }
+
+      async function OpenUSDTTransaction(fa, ta, vl)
+      {
+        let account = await blockChain.getAccounts();
+        blockChain.contractTransfer(
+          USDT_ABI,
+          {
+            from:fa,
+            to:ta,
+            value:blockChain.toUSDT(vl),
+            contractAddress: USDT_CONTRACT_ADDRESS,
+          },(err, res)=>{
+            if(err)
+            {
+                window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(err));
+            }
+            if(res)
+            {
+              console.log(res);
+              window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(res));
+            }
+          }
+        );
+      }
+
+      async function OpenUSDCTransaction(fa, ta, vl)
+      {
+        let account = await blockChain.getAccounts();
+        blockChain.contractTransfer(
+          USDC_ABI,
+          {
+            from:fa,
+            to:ta,
+            value:blockChain.toUSDC(vl),
+            contractAddress: USDC_CONTRACT_ADDRESS,
+          },(err, res)=>{
+            if(err)
+            {
+                window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(err));
+            }
+            if(res)
+            {
+              console.log(res);
+              window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(res));
+            }
+          }
+        );
+      }
+
+      async function OpenDAITransaction(fa, ta, vl)
+      {
+        let account = await blockChain.getAccounts();
+        blockChain.contractTransfer(
+          DAI_ABI,
+          {
+            from:fa,
+            to:ta,
+            value:blockChain.toWei(String(vl)),
+            contractAddress: DAI_CONTRACT_ADDRESS,
+          },(err, res)=>{
+            if(err)
+            {
+                window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(err));
+            }
+            if(res)
+            {
+              console.log(res);
+              window.unityInstance.SendMessage(UObjName, UObjFunc, JSON.stringify(res));
+            }
+          }
+        );
+      }
+
+      function Reset()
+      {
+        if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) 
+        {
+          // UnityのCanvasとiframe要素のズームイン
+          const unityCanvas = document.getElementById('unity-canvas');
+          const iframe = document.getElementById('webpage-frame');
+          const footer = document.getElementById('unity-footer');
+          footer.style.display = 'none';//全画面非表示ボタン
+
+          var screenWidth = document.body.clientWidth;
+          var screenHeight = document.body.clientHeight;
+
+          unityCanvas.style.width = screenWidth + 'px';
+          unityCanvas.style.height = screenHeight + 'px';
+          iframe.style.width = screenWidth + 'px';
+          iframe.style.height = screenHeight + 'px';
+
+          var chromeVersion = navigator.userAgent.match(/Chrome\/(\d+)/);
+          var tdiv = document.querySelector("#TelegramLoginBtn");
+          if(tdiv && tdiv.childElementCount == 0 
+              && (/MetaMaskMobile/i.test(navigator.userAgent)//MetaMask
+              || /TokenPocket/i.test(navigator.userAgent)//TokenPocket
+              || /imToken/i.test(navigator.userAgent)//imToken
+              || (/iPhone/i.test(navigator.userAgent) && !/Safari/i.test(navigator.userAgent)) //Coinbase
+              || (chromeVersion && chromeVersion[1] < 116)//Chrome116
+              || /Mi/i.test(navigator.userAgent)//XiaoMi
+            ))
+          {
+            var scriptElement = document.createElement('script');
+            scriptElement.src = 'https://telegram.org/js/telegram-widget.js?22';
+            scriptElement.async = true;
+            scriptElement.setAttribute('data-telegram-login', 'GreedyWorld2Bot');
+            scriptElement.setAttribute('data-size', 'large');
+            scriptElement.setAttribute('data-userpic', 'false');
+            scriptElement.setAttribute('data-radius', '3');
+            scriptElement.setAttribute('data-request-access', 'write');
+            scriptElement.setAttribute('data-auth-url', './');
+            tdiv.appendChild(scriptElement);
+          }
+        }
+      }
+
+      var buildUrl = "Build";
+      var loaderUrl = buildUrl + "/HTML.loader.js";
+      var config = {
+        dataUrl: buildUrl + "/HTML.data.unityweb",
+        frameworkUrl: buildUrl + "/HTML.framework.js.unityweb",
+        codeUrl: buildUrl + "/HTML.wasm.unityweb",
+        streamingAssetsUrl: "StreamingAssets",
+        companyName: "DefaultCompany",
+        productName: "TCS",
+        productVersion: "0.1",
+        showBanner: unityShowBanner,
+      };
+
+      // By default Unity keeps WebGL canvas render target size matched with
+      // the DOM size of the canvas element (scaled by window.devicePixelRatio)
+      // Set this to false if you want to decouple this synchronization from
+      // happening inside the engine, and you would instead like to size up
+      // the canvas DOM size and WebGL render target sizes yourself.
+      // config.matchWebGLToCanvasSize = false;
+
+      if (/iPhone|iPad|iPod|Android/i.test(navigator.userAgent)) {
+        // Mobile device style: fill the whole browser client area with the game canvas:
+
+        var meta = document.createElement('meta');
+        meta.name = 'viewport';
+        meta.content = 'width=device-width, height=device-height, initial-scale=1.0, user-scalable=no, shrink-to-fit=yes';
+        document.getElementsByTagName('head')[0].appendChild(meta);
+        container.className = "unity-mobile";
+        canvas.className = "unity-mobile";
+
+        // To lower canvas resolution on mobile devices to gain some
+        // performance, uncomment the following line:
+        // config.devicePixelRatio = 1;
+
+        //unityShowBanner('WebGL builds are not supported on mobile devices.');
+        //canvas.style.display = 'none';
+        // Redirect to a different page for mobile devices:
+        //window.location.href = "phone.html";
+        
+        //canvas.style.display = 'block';
+      } //else {
+        // Desktop style: Render the game canvas in a window that can be maximized to fullscreen:
+        //canvas.style.display = 'block';
+
+        canvas.style.width = "960px";
+        canvas.style.height = "540px";
+
+      loadingBar.style.display = "block";
+      let originalCanvasWidth;
+      let originalCanvasHeight;
+      let originalIframeWidth;
+      let originalIframeHeight;
+      var script = document.createElement("script");
+      script.src = loaderUrl;
+
+      
+
+      // フルスクリーンモード変更イベントを聞く
+      document.addEventListener('fullscreenchange', () => {
+        // フルスクリーンモード終了時にキャンバスとiframeのサイズを元に戻す
+        if (!document.fullscreenElement) {
+          const unityCanvas = document.getElementById('unity-canvas');
+          const iframe = document.getElementById('webpage-frame');
+          const footer = document.getElementById('unity-footer');
+
+          unityCanvas.style.width = originalCanvasWidth + 'px';
+          unityCanvas.style.height = originalCanvasHeight + 'px';
+          iframe.style.width = originalIframeWidth + 'px';
+          iframe.style.height = originalIframeHeight + 'px';
+
+          // スクロールバーの表示
+          document.body.style.overflow = 'auto';
+          //全画面表示ボタン
+          footer.style.display = 'block';
+
+          console.log("#############"+UObjName+"   "+UObjFunc);
+          window.unityInstance.SendMessage(UObjName, UObjFunc, 20);
+        }
+      });
+
+      script.onload = () => {
+        createUnityInstance(canvas, config, (progress) => {
+          progressBarFull.style.width = 100 * progress + "%";
+        }).then((unityInstance) => {
+          loadingBar.style.display = "none";
+          canvas.style.background = 'transparent';
+          fullscreenButton.onclick = () => {
+            unityInstance.SetFullscreen(1);
+            // ウェブページのフルスクリーンモード
+            if (document.documentElement.requestFullscreen) {
+              document.documentElement.requestFullscreen();
+            } else if (document.documentElement.mozRequestFullScreen) { // Firefox
+              document.documentElement.mozRequestFullScreen();
+            } else if (document.documentElement.webkitRequestFullscreen) { // Chrome, Safari 和 Opera
+              document.documentElement.webkitRequestFullscreen();
+            } else if (document.documentElement.msRequestFullscreen) { // IE/Edge
+              document.documentElement.msRequestFullscreen();
+            }
+            // スクロールバーを隠す
+            document.body.style.overflow = 'hidden';
+            // 画面解像度の取得
+            const screenWidth = window.screen.width;
+            const screenHeight = window.screen.height;
+
+            // UnityのCanvasとiframe要素のズームイン
+            const unityCanvas = document.getElementById('unity-canvas');
+            const iframe = document.getElementById('webpage-frame');
+            const footer = document.getElementById('unity-footer');
+
+            originalCanvasWidth = unityCanvas.offsetWidth;
+            originalCanvasHeight = unityCanvas.offsetHeight;
+            originalIframeWidth = iframe.offsetWidth;
+            originalIframeHeight = iframe.offsetHeight;
+
+            
+            footer.style.display = 'none';//全画面を隠すボタン
+
+            unityCanvas.style.width = screenWidth + 'px';
+            unityCanvas.style.height = screenHeight + 'px';
+            iframe.style.width = screenWidth + 'px';
+            iframe.style.height = screenHeight + 'px';
+            console.log("#############"+UObjName+"   "+UObjFunc);
+            window.unityInstance.SendMessage(UObjName, UObjFunc, 10);
+          };
+
+          window.unityInstance = unityInstance;
+        }).catch((message) => {
+          alert(message);
+        });
+      };
+      document.body.appendChild(script);
+    </script>
+  </body>
+</html>
