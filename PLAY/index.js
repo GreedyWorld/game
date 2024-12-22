@@ -2,18 +2,18 @@ const ContractAddress = "0x956E482C3570f0d5D566F0E1dA166fCAa60D1F2e";
 class BlockChain {
   BlockChain = null;
   chainConfig = null;
-  chainNum = 137;
+  chainNum = 133;
   constructor() {
     this.chainConfig = {
-      rpcUrls: ["https://polygon-rpc.com/"],
-      chainId: "0x89", //89
-      chainName: "Polygon Mainnet",
+      rpcUrls: ["https://hashkeychain-testnet.alt.technology"],
+      chainId: "0x85", //89
+      chainName: "Hashkey Chain",
       nativeCurrency: {
-        name: "MATIC",
-        symbol: "MATIC",
+        name: "HSK",
+        symbol: "HSK",
         decimals: 18,
       },
-      blockExplorerUrls: ["https://polygonscan.com"],
+      blockExplorerUrls: ["https://explorer.hsk.xyz"],
     };
     let win = window;
 
@@ -38,6 +38,72 @@ class BlockChain {
   }
   fromUtf8(nonce_str) {
     return this.BlockChain.utils.fromUtf8(nonce_str);
+  }
+  jumpBitGet(dappUrl) {
+    window.location.href = `https://bkcode.vip?action=dapp&url=${dappUrl}`;
+  }
+  jumpTokenPocket(dappUrl) {
+    const a = document.createElement("a");
+    let params = {
+      url: dappUrl,
+      chain: "ETH",
+      source: "xxx",
+    };
+    a.href = `tpdapp://open?params=${encodeURIComponent(
+      JSON.stringify(params)
+    )}`;
+
+    a.target = "_self";
+    document.body.appendChild(a);
+    a.click();
+    a.remove();
+  }
+  jumpMetaMask(dappUrl) {
+    window.location.href = `https://metamask.app.link/dapp/${encodeURIComponent(
+      dappUrl
+    )}`;
+  }
+  jumpCoinBase(dappUrl) {
+    window.location.href = `https://go.cb-w.com/dapp?cb_url=${encodeURIComponent(
+      dappUrl
+    )}`;
+  }
+  jumpOKXWallet(dappUrl) {
+    const encodedUrl =
+      "https://www.okx.com/download?deeplink=" +
+      encodeURIComponent(
+        "okx://wallet/dapp/url?dappUrl=" + encodeURIComponent(dappUrl)
+      );
+    window.location.href = encodedUrl;
+  }
+  getWalletName() {
+    if (window.bitkeep && window.bitkeep.ethereum) {
+      return "Bitget";
+    }
+    if (window.ethereum && window.ethereum.isMetaMask) {
+      return "MetaMask";
+    }
+    if (window.okxwallet) {
+      return "okxwallet";
+    }
+    if (window.trustwallet) {
+      return "trustwallet";
+    }
+    if (window.ethereum && window.ethereum.isTokenPocket) {
+      return "TokenPocket";
+    }
+    if (window.ethereum && window.ethereum.isImToken) {
+      return "ImToken";
+    }
+    if (window.ethereum && window.ethereum.providers) {
+      let fin = window.ethereum.providers.find(
+        ({ isCoinbaseWallet }) => isCoinbaseWallet
+      );
+      if (fin) {
+        return "CoinbaseWallet";
+      }
+    }
+    return "";
   }
   toWei(num) {
     return this.BlockChain.utils.toWei(String(num));
